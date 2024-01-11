@@ -3,6 +3,10 @@ from langchain_core.documents import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import GPT4AllEmbeddings
 from langchain_community.vectorstores import Chroma
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import UnstructuredMarkdownLoader
+from langchain_community.document_loaders import UnstructuredPowerPointLoader
+
 import tiktoken
 
 
@@ -32,4 +36,19 @@ text_splitter = RecursiveCharacterTextSplitter(
 def create_from_text(text:Literal) -> Chroma:
     # chunk input into multiple documents
     docs = text_splitter.create_documents([text])
+    return create(docs)
+
+def create_from_pdf(pdf_path:str) -> Chroma:
+    loader = PyPDFLoader(pdf_path)
+    docs = loader.load_and_split()
+    return create(docs)
+
+def create_from_markdown(markdown_path:str) -> Chroma:
+    loader = UnstructuredMarkdownLoader(markdown_path)
+    docs = loader.load()
+    return create(docs)
+
+def create_from_pptx(pptx_path:str) -> Chroma:
+    loader = UnstructuredPowerPointLoader(pptx_path)
+    docs = loader.load()
     return create(docs)

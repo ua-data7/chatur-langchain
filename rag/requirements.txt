@@ -4,3 +4,4 @@ langchain-core==0.1.9
 tiktoken==0.5.2
 gpt4all==2.0.2
 chromadb==0.4.22
+pypdf==3.17.4
