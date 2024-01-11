@@ -10,7 +10,7 @@ from langchain_community.document_loaders import UnstructuredPowerPointLoader
 import tiktoken
 
 
-def tiktoken_len(text):
+def _tiktoken_len(text):
     tokenizer = tiktoken.get_encoding("cl100k_base")
     tokens = tokenizer.encode(text)
     return len(tokens)
@@ -30,7 +30,7 @@ text_splitter = RecursiveCharacterTextSplitter(
     chunk_size = 1000,
     # this is a configurable value
     chunk_overlap = 200,
-    length_function = tiktoken_len,
+    length_function = _tiktoken_len,
 )
 
 def create_from_text(text:Literal) -> Chroma:
@@ -52,3 +52,7 @@ def create_from_pptx(pptx_path:str) -> Chroma:
     loader = UnstructuredPowerPointLoader(pptx_path)
     docs = loader.load()
     return create(docs)
+
+
+def load(persist_db_path:str) -> Chroma:
+    return Chroma(embedding_function=GPT4AllEmbeddings(), persist_directory=persist_db_path)
