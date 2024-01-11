@@ -1,6 +1,8 @@
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-
+from langchain_community.embeddings import GPT4AllEmbeddings
+from langchain_community.vectorstores import Chroma
 import tiktoken
+
 
 tokenizer = tiktoken.get_encoding("cl100k_base")
 
@@ -35,3 +37,9 @@ documents = text_splitter.create_documents([input_text])
 for text in documents:
     print(text)
     print("-"*500)
+
+vectorstore = Chroma.from_documents(documents=documents, embedding=GPT4AllEmbeddings())
+question = "What is the scientific name of the rock parrot?"
+docs = vectorstore.similarity_search(question)
+len(docs)
+print(docs)
