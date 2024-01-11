@@ -2,6 +2,11 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import GPT4AllEmbeddings
 from langchain_community.vectorstores import Chroma
 import tiktoken
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import PromptTemplate
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.llms import Ollama
 
 
 tokenizer = tiktoken.get_encoding("cl100k_base")
@@ -46,8 +51,31 @@ for text in documents:
 # store it into vector store (chroma) using gpt4all embeddings
 vectorstore = Chroma.from_documents(documents=documents, embedding=GPT4AllEmbeddings())
 
-# test
+# len(docs)
+# print(docs)
+
+# Prompt
+prompt = PromptTemplate.from_template(
+    "Using the following documents, help answer questions as a teacher would help a student: {docs}"
+)
+
+# Chain
+def format_documents(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+# Make sure the model path is correct for your system!
+llm = Ollama(
+    model="mistral",
+    callback_manager=CallbackManager([StreamingStdOutCallbackHandler()])
+    # model_path="/usr/share/ollama/.ollama/models/blobs/sha256:e8a35b5937a5e6d5c35d1f2a15f161e07eefe5e5bb0a3cdd42998ee79b057730",
+    # n_gpu_layers=n_gpu_layers,
+    # n_batch=n_batch,
+    # n_ctx=2048,
+    # f16_kv=True,  # MUST set to True, otherwise you will run into problem after a couple of calls
+    # verbose=True,
+)
+
+chain = {"docs": format_documents} | prompt | llm | StrOutputParser()
 question = "What is the scientific name of the rock parrot?"
-docs = vectorstore.similarity_search(question)
-len(docs)
-print(docs)
+format_docs = vectorstore.similarity_search(question)
+chain.invoke(format_docs)
