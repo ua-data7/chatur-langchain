@@ -9,6 +9,7 @@ from langchain.prompts import (
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain_community.llms import Ollama
+from langchain_community.vectorstores import Chroma
 from langchain.memory import ConversationBufferMemory
 
 from langchain_core.runnables import RunnablePassthrough
@@ -16,12 +17,8 @@ from langchain_core.runnables import RunnablePassthrough
 import vectordb
 
 
-# Chain
-def format_documents(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
-
-
-input_text = """
+def test_vectorstore_text() -> Chroma:
+    input_text = """
     The rock parrot (Neophema petrophila) is a species of grass parrot native to Australia. Described by John Gould in 1841, it is a small parrot 22–24 cm (8+3⁄4–9+1⁄2 in) long and weighing 50–60 g (1+3⁄4–2 oz) with predominantly olive-brown upperparts and more yellowish underparts. Its head is olive with light blue forecheeks and lores, and a dark blue frontal band line across the crown with lighter blue above and below. The sexes are similar in appearance, although the female tends to have a duller frontal band and less blue on the face. The female's call also tends to be far louder and more shrill than the male's. Two subspecies are currently recognised.
 
     Rocky islands and coastal dune areas are the preferred habitats for this species, which is found from Lake Alexandrina in southeastern South Australia westwards across coastal South and Western Australia to Shark Bay. Unlike other grass parrots, it nests in burrows or rocky crevices mostly on offshore islands such as Rottnest Island. Seeds of grasses and succulent plants form the bulk of its diet. The species has suffered in the face of feral mammals; although its population is declining, it is considered to be a least-concern species by the International Union for Conservation of Nature (IUCN).
@@ -38,7 +35,19 @@ input_text = """
     "Rock parrot" has been designated as the official common name for the species by the International Ornithologists' Union (IOC).[9] Gilbert reported the Swan River colonists called it the rock parrakeet, and he labelled it the rock grass-parrakeet.[4] It is also known as rock elegant parrot.[13]
     """
 
-vectorstore = vectordb.create_from_text(input_text)
+    return vectordb.create_from_text(input_text)
+
+
+def test_vectorstore_pdf() -> Chroma:
+    return vectordb.create_from_pdf("rock_parrot.pdf")
+
+
+# Chain
+def format_documents(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+
+vectorstore = test_vectorstore_pdf()
 retriever = vectorstore.as_retriever()
 
 # question from human
@@ -52,7 +61,6 @@ prompt = ChatPromptTemplate(
         HumanMessagePromptTemplate.from_template("{question}"),
     ]
 )
-
 
 # Make sure the model path is correct for your system!
 llm = Ollama(
