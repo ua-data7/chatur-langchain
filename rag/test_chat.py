@@ -44,8 +44,9 @@ example question: "When was the rock parrot discovered?"
 
 print("input: " + str.join(", ", input_paths))
 
+
 # TODO: need to use create() and series of add_pdf() calls 
-vectorstore = vectordb.create_from_pdf(input_paths[0])
+vectorstore = vectordb.create_from_file(input_paths[0])
 retriever = vectorstore.as_retriever()
 
 rag_chain = chain.make_chain(retriever)

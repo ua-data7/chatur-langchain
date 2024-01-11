@@ -6,9 +6,10 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from langchain_community.document_loaders import UnstructuredPowerPointLoader
+from langchain_community.document_loaders import TextLoader
 
 import tiktoken
-
+import pathlib
 
 def _tiktoken_len(text):
     tokenizer = tiktoken.get_encoding("cl100k_base")
@@ -38,6 +39,11 @@ def create_from_text(text:Literal) -> Chroma:
     docs = text_splitter.create_documents([text])
     return create(docs)
 
+def create_from_text_file(text_path:str) -> Chroma:
+    loader = TextLoader(text_path)
+    docs = loader.load()
+    return create(docs)
+
 def create_from_pdf(pdf_path:str) -> Chroma:
     loader = PyPDFLoader(pdf_path)
     docs = loader.load_and_split()
@@ -53,6 +59,18 @@ def create_from_pptx(pptx_path:str) -> Chroma:
     docs = loader.load()
     return create(docs)
 
-
+def create_from_file(path:str) -> Chroma:
+    # detect format
+    file_ext = pathlib.Path(path).suffix
+    match str.lower(file_ext):
+        case ".pdf":
+            return create_from_pdf(path)
+        case ".md":
+            return create_from_markdown(path)
+        case ".pptx":
+            return create_from_pptx(path)
+        case _:
+            return create_from_text_file(path)
+        
 def load(persist_db_path:str) -> Chroma:
     return Chroma(embedding_function=GPT4AllEmbeddings(), persist_directory=persist_db_path)
