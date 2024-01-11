@@ -31,7 +31,7 @@ Two subspecies are recognised by the International Ornithologists' Union: subspe
 "Rock parrot" has been designated as the official common name for the species by the International Ornithologists' Union (IOC).[9] Gilbert reported the Swan River colonists called it the rock parrakeet, and he labelled it the rock grass-parrakeet.[4] It is also known as rock elegant parrot.[13]
 """
 
-texts = text_splitter.split_text(input_text)
-for text in texts:
+documents = text_splitter.create_documents([input_text])
+for text in documents:
     print(text)
     print("-"*500)
