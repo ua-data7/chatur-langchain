@@ -10,8 +10,11 @@ def tiktoken_len(text):
     tokens = tokenizer.encode(text)
     return len(tokens)
 
+# this splits the input text
 text_splitter = RecursiveCharacterTextSplitter(
+    # chunk size should not be very large as model has a limit
     chunk_size = 1000,
+    # this is a configurable value
     chunk_overlap = 200,
     length_function = tiktoken_len,
 )
@@ -33,12 +36,17 @@ Two subspecies are recognised by the International Ornithologists' Union: subspe
 "Rock parrot" has been designated as the official common name for the species by the International Ornithologists' Union (IOC).[9] Gilbert reported the Swan River colonists called it the rock parrakeet, and he labelled it the rock grass-parrakeet.[4] It is also known as rock elegant parrot.[13]
 """
 
+# chunk input into multiple documents
 documents = text_splitter.create_documents([input_text])
 for text in documents:
     print(text)
     print("-"*500)
 
+
+# store it into vector store (chroma) using gpt4all embeddings
 vectorstore = Chroma.from_documents(documents=documents, embedding=GPT4AllEmbeddings())
+
+# test
 question = "What is the scientific name of the rock parrot?"
 docs = vectorstore.similarity_search(question)
 len(docs)
