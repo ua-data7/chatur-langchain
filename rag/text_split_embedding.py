@@ -5,16 +5,29 @@ from langchain_community.embeddings import GPT4AllEmbeddings
 from langchain_community.vectorstores import Chroma
 import tiktoken
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import PromptTemplate
+from langchain.prompts import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
+    SystemMessagePromptTemplate,
+)
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.llms import Ollama
+from langchain.memory import ConversationBufferMemory
+
+from langchain_core.runnables import RunnablePassthrough
 
 
 def tiktoken_len(text):
     tokenizer = tiktoken.get_encoding("cl100k_base")
     tokens = tokenizer.encode(text)
     return len(tokens)
+
+
+# Chain
+def format_documents(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
 
 
 def mk_vector_store(persist_db_path:Optional[str]) -> Chroma:
@@ -60,29 +73,32 @@ def mk_vector_store(persist_db_path:Optional[str]) -> Chroma:
         persist_directory=persist_db_path)
 
 vectorstore = mk_vector_store(None)
+retriever = vectorstore.as_retriever()
 
+# question from human
+question = "When was the rock parrot discovered?"
 # Prompt
-prompt = PromptTemplate.from_template(
-    "Using the following documents, help answer questions as a teacher would help a student. Remember to only answer the question they asked: {docs}"
+prompt = ChatPromptTemplate(
+    messages=[
+        SystemMessagePromptTemplate.from_template(
+            "Using the following documents, help answer questions as a teacher would help a student. Remember to only answer the question they asked: {context}"
+        ),
+        HumanMessagePromptTemplate.from_template("{question}"),
+    ]
 )
+
 
 # Make sure the model path is correct for your system!
 llm = Ollama(
     model="mistral",
     callback_manager=CallbackManager([StreamingStdOutCallbackHandler()])
-    # model_path="/usr/share/ollama/.ollama/models/blobs/sha256:e8a35b5937a5e6d5c35d1f2a15f161e07eefe5e5bb0a3cdd42998ee79b057730",
-    # n_gpu_layers=n_gpu_layers,
-    # n_batch=n_batch,
-    # n_ctx=2048,
-    # f16_kv=True,  # MUST set to True, otherwise you will run into problem after a couple of calls
-    # verbose=True,
 )
 
-# Chain
-def format_documents(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
+rag_chain = (
+    {"context": retriever | format_documents, "question": RunnablePassthrough()}
+    | prompt
+    | llm
+    | StrOutputParser()
+)
 
-chain = {"docs": format_documents} | prompt | llm | StrOutputParser()
-question = "When was the rock parrot discovered?"
-format_docs = vectorstore.similarity_search(question)
-chain.invoke(format_docs)
+rag_chain.invoke(question)
