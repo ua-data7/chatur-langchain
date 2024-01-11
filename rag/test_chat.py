@@ -23,13 +23,13 @@ def test_vectorstore_text() -> VectorDB:
     "Rock parrot" has been designated as the official common name for the species by the International Ornithologists' Union (IOC).[9] Gilbert reported the Swan River colonists called it the rock parrakeet, and he labelled it the rock grass-parrakeet.[4] It is also known as rock elegant parrot.[13]
     """
 
-    store = VectorDB()
+    store = VectorDB(None)
     store.add_text(input_text)
     return store
 
 
 def test_vectorstore_pdf() -> VectorDB:
-    store = VectorDB()
+    store = VectorDB(None)
     store.add_pdf("rock_parrot.pdf")
     return store
 
@@ -49,7 +49,7 @@ print("input: " + str.join(", ", input_paths))
 
 
 # TODO: need to use create() and series of add_pdf() calls
-vectorstore = VectorDB()
+vectorstore = VectorDB(None)
 vectorstore.add_file(input_paths[0])
 retriever = vectorstore.as_retriever()
 
