@@ -1,11 +1,11 @@
 import chain
 import sys
-import vectordb
+from vectordb import VectorDB
 
 from langchain_community.vectorstores import Chroma
 
 
-def test_vectorstore_text() -> Chroma:
+def test_vectorstore_text() -> VectorDB:
     input_text = """
     The rock parrot (Neophema petrophila) is a species of grass parrot native to Australia. Described by John Gould in 1841, it is a small parrot 22–24 cm (8+3⁄4–9+1⁄2 in) long and weighing 50–60 g (1+3⁄4–2 oz) with predominantly olive-brown upperparts and more yellowish underparts. Its head is olive with light blue forecheeks and lores, and a dark blue frontal band line across the crown with lighter blue above and below. The sexes are similar in appearance, although the female tends to have a duller frontal band and less blue on the face. The female's call also tends to be far louder and more shrill than the male's. Two subspecies are currently recognised.
 
@@ -23,12 +23,15 @@ def test_vectorstore_text() -> Chroma:
     "Rock parrot" has been designated as the official common name for the species by the International Ornithologists' Union (IOC).[9] Gilbert reported the Swan River colonists called it the rock parrakeet, and he labelled it the rock grass-parrakeet.[4] It is also known as rock elegant parrot.[13]
     """
 
-    return vectordb.create_from_text(input_text)
+    store = VectorDB()
+    store.add_text(input_text)
+    return store
 
 
-def test_vectorstore_pdf() -> Chroma:
-    return vectordb.create_from_pdf("rock_parrot.pdf")
-
+def test_vectorstore_pdf() -> VectorDB:
+    store = VectorDB()
+    store.add_pdf("rock_parrot.pdf")
+    return store
 
 
 input_paths = sys.argv[1:]
@@ -45,8 +48,9 @@ example question: "When was the rock parrot discovered?"
 print("input: " + str.join(", ", input_paths))
 
 
-# TODO: need to use create() and series of add_pdf() calls 
-vectorstore = vectordb.create_from_file(input_paths[0])
+# TODO: need to use create() and series of add_pdf() calls
+vectorstore = VectorDB()
+vectorstore.add_file(input_paths[0])
 retriever = vectorstore.as_retriever()
 
 rag_chain = chain.make_chain(retriever)
@@ -58,4 +62,3 @@ print("\n")
 print("===== output =====")
 print(my_out)
 print("\n")
-
