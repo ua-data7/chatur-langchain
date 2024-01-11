@@ -22,5 +22,5 @@ docker exec ollama_cyverse ollama pull mistral
 
 Run
 ```
-python3 ./chain.py
+python3 ./test_chat.py
 ```
