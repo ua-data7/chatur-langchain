@@ -56,7 +56,7 @@ vectorstore = Chroma.from_documents(documents=documents, embedding=GPT4AllEmbedd
 
 # Prompt
 prompt = PromptTemplate.from_template(
-    "Using the following documents, help answer questions as a teacher would help a student: {docs}"
+    "Using the following documents, help answer questions as a teacher would help a student. Remember to only answer the question they asked: {docs}"
 )
 
 # Chain
@@ -76,6 +76,6 @@ llm = Ollama(
 )
 
 chain = {"docs": format_documents} | prompt | llm | StrOutputParser()
-question = "What is the scientific name of the rock parrot?"
+question = "When was the rock parrot discovered?"
 format_docs = vectorstore.similarity_search(question)
 chain.invoke(format_docs)
